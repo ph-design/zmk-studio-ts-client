@@ -7,6 +7,17 @@ import { Mutex } from 'async-mutex';
 import { ErrorConditions } from './meta';
 export { Request, RequestResponse, Response, Notification };
 
+export type {
+  HsbColor,
+  RgbUnderglowState,
+  SetRgbUnderglowStateRequest,
+  BacklightState,
+  SetBacklightStateRequest,
+  Request as LightingRequest,
+  Response as LightingResponse,
+  Notification as LightingNotification,
+} from './lighting';
+
 export interface RpcConnection {
   label: string;
   request_response_readable: ReadableStream<RequestResponse>;
