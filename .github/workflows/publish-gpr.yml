@@ -1,0 +1,47 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    branches:
+      - v0.3_lts
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@ph-design'
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+
+      - run: npm ci
+
+      - name: Configure package for GitHub Packages
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          node -e "
+            const pkg = require('./package.json');
+            const base = pkg.version;
+            pkg.name = '@ph-design/zmk-studio-ts-client-fork';
+            pkg.version = base + '-dev.' + '${TIMESTAMP}' + '.' + '${SHORT_SHA}';
+            pkg.publishConfig = { registry: 'https://npm.pkg.github.com' };
+            pkg.repository = { type: 'git', url: 'https://github.com/ph-design/zmk-studio-ts-client.git' };
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - run: npm publish --tag latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
