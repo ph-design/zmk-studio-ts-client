@@ -23,6 +23,8 @@ export interface RgbUnderglowState {
   color: HsbColor | undefined;
   effect: number;
   speed: number;
+  effectCount: number;
+  effectNames: string[];
 }
 
 export interface SetRgbUnderglowStateRequest {
@@ -153,7 +155,7 @@ export const HsbColor = {
 };
 
 function createBaseRgbUnderglowState(): RgbUnderglowState {
-  return { on: false, color: undefined, effect: 0, speed: 0 };
+  return { on: false, color: undefined, effect: 0, speed: 0, effectCount: 0, effectNames: [] };
 }
 
 export const RgbUnderglowState = {
@@ -169,6 +171,12 @@ export const RgbUnderglowState = {
     }
     if (message.speed !== 0) {
       writer.uint32(32).uint32(message.speed);
+    }
+    if (message.effectCount !== 0) {
+      writer.uint32(40).uint32(message.effectCount);
+    }
+    for (const v of message.effectNames) {
+      writer.uint32(50).string(v!);
     }
     return writer;
   },
@@ -208,6 +216,20 @@ export const RgbUnderglowState = {
 
           message.speed = reader.uint32();
           continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.effectCount = reader.uint32();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.effectNames.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -223,6 +245,10 @@ export const RgbUnderglowState = {
       color: isSet(object.color) ? HsbColor.fromJSON(object.color) : undefined,
       effect: isSet(object.effect) ? globalThis.Number(object.effect) : 0,
       speed: isSet(object.speed) ? globalThis.Number(object.speed) : 0,
+      effectCount: isSet(object.effectCount) ? globalThis.Number(object.effectCount) : 0,
+      effectNames: globalThis.Array.isArray(object?.effectNames)
+        ? object.effectNames.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -240,6 +266,12 @@ export const RgbUnderglowState = {
     if (message.speed !== 0) {
       obj.speed = Math.round(message.speed);
     }
+    if (message.effectCount !== 0) {
+      obj.effectCount = Math.round(message.effectCount);
+    }
+    if (message.effectNames?.length) {
+      obj.effectNames = message.effectNames;
+    }
     return obj;
   },
 
@@ -254,6 +286,8 @@ export const RgbUnderglowState = {
       : undefined;
     message.effect = object.effect ?? 0;
     message.speed = object.speed ?? 0;
+    message.effectCount = object.effectCount ?? 0;
+    message.effectNames = object.effectNames?.map((e) => e) || [];
     return message;
   },
 };
