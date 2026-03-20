@@ -44,12 +44,56 @@ export interface SetBacklightStateRequest {
   brightness?: number | undefined;
 }
 
+export interface LayerLedBinding {
+  keyPosition: number;
+  /** 0xRRGGBB, 0 = transparent */
+  color: number;
+}
+
+export interface LayerLedConfig {
+  layerId: number;
+  bindings: LayerLedBinding[];
+}
+
+export interface GetLayerLedColorsResponse {
+  layers: LayerLedConfig[];
+  keyCount: number;
+  layerCount: number;
+}
+
+export interface SetLayerLedBindingRequest {
+  layerId: number;
+  keyPosition: number;
+  /** 0xRRGGBB, 0 = transparent */
+  color: number;
+}
+
+export interface CapsLockIndicatorState {
+  enabled: boolean;
+  /** 0xRRGGBB */
+  offColor: number;
+  /** 0xRRGGBB */
+  onColor: number;
+  keyPosition: number;
+}
+
+export interface SetCapsLockIndicatorRequest {
+  enabled?: boolean | undefined;
+  offColor?: number | undefined;
+  onColor?: number | undefined;
+}
+
 export interface Request {
   getRgbUnderglowState?: boolean | undefined;
   setRgbUnderglowState?: SetRgbUnderglowStateRequest | undefined;
   getBacklightState?: boolean | undefined;
   setBacklightState?: SetBacklightStateRequest | undefined;
   saveState?: boolean | undefined;
+  getLayerLedColors?: boolean | undefined;
+  setLayerLedBinding?: SetLayerLedBindingRequest | undefined;
+  getCapsLockIndicator?: boolean | undefined;
+  setCapsLockIndicator?: SetCapsLockIndicatorRequest | undefined;
+  saveLayerLedState?: boolean | undefined;
 }
 
 export interface Response {
@@ -58,6 +102,11 @@ export interface Response {
   getBacklightState?: BacklightState | undefined;
   setBacklightState?: boolean | undefined;
   saveState?: boolean | undefined;
+  getLayerLedColors?: GetLayerLedColorsResponse | undefined;
+  setLayerLedBinding?: boolean | undefined;
+  getCapsLockIndicator?: CapsLockIndicatorState | undefined;
+  setCapsLockIndicator?: boolean | undefined;
+  saveLayerLedState?: boolean | undefined;
 }
 
 export interface Notification {
@@ -546,6 +595,527 @@ export const SetBacklightStateRequest = {
   },
 };
 
+function createBaseLayerLedBinding(): LayerLedBinding {
+  return { keyPosition: 0, color: 0 };
+}
+
+export const LayerLedBinding = {
+  encode(message: LayerLedBinding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.keyPosition !== 0) {
+      writer.uint32(8).uint32(message.keyPosition);
+    }
+    if (message.color !== 0) {
+      writer.uint32(16).uint32(message.color);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LayerLedBinding {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLayerLedBinding();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.color = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LayerLedBinding {
+    return {
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : 0,
+      color: isSet(object.color) ? globalThis.Number(object.color) : 0,
+    };
+  },
+
+  toJSON(message: LayerLedBinding): unknown {
+    const obj: any = {};
+    if (message.keyPosition !== 0) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    if (message.color !== 0) {
+      obj.color = Math.round(message.color);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LayerLedBinding>, I>>(base?: I): LayerLedBinding {
+    return LayerLedBinding.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LayerLedBinding>, I>>(object: I): LayerLedBinding {
+    const message = createBaseLayerLedBinding();
+    message.keyPosition = object.keyPosition ?? 0;
+    message.color = object.color ?? 0;
+    return message;
+  },
+};
+
+function createBaseLayerLedConfig(): LayerLedConfig {
+  return { layerId: 0, bindings: [] };
+}
+
+export const LayerLedConfig = {
+  encode(message: LayerLedConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.layerId !== 0) {
+      writer.uint32(8).uint32(message.layerId);
+    }
+    for (const v of message.bindings) {
+      LayerLedBinding.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LayerLedConfig {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLayerLedConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.bindings.push(LayerLedBinding.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LayerLedConfig {
+    return {
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : 0,
+      bindings: globalThis.Array.isArray(object?.bindings)
+        ? object.bindings.map((e: any) => LayerLedBinding.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: LayerLedConfig): unknown {
+    const obj: any = {};
+    if (message.layerId !== 0) {
+      obj.layerId = Math.round(message.layerId);
+    }
+    if (message.bindings?.length) {
+      obj.bindings = message.bindings.map((e) => LayerLedBinding.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LayerLedConfig>, I>>(base?: I): LayerLedConfig {
+    return LayerLedConfig.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LayerLedConfig>, I>>(object: I): LayerLedConfig {
+    const message = createBaseLayerLedConfig();
+    message.layerId = object.layerId ?? 0;
+    message.bindings = object.bindings?.map((e) => LayerLedBinding.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetLayerLedColorsResponse(): GetLayerLedColorsResponse {
+  return { layers: [], keyCount: 0, layerCount: 0 };
+}
+
+export const GetLayerLedColorsResponse = {
+  encode(message: GetLayerLedColorsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.layers) {
+      LayerLedConfig.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.keyCount !== 0) {
+      writer.uint32(16).uint32(message.keyCount);
+    }
+    if (message.layerCount !== 0) {
+      writer.uint32(24).uint32(message.layerCount);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLayerLedColorsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLayerLedColorsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.layers.push(LayerLedConfig.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.keyCount = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.layerCount = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLayerLedColorsResponse {
+    return {
+      layers: globalThis.Array.isArray(object?.layers) ? object.layers.map((e: any) => LayerLedConfig.fromJSON(e)) : [],
+      keyCount: isSet(object.keyCount) ? globalThis.Number(object.keyCount) : 0,
+      layerCount: isSet(object.layerCount) ? globalThis.Number(object.layerCount) : 0,
+    };
+  },
+
+  toJSON(message: GetLayerLedColorsResponse): unknown {
+    const obj: any = {};
+    if (message.layers?.length) {
+      obj.layers = message.layers.map((e) => LayerLedConfig.toJSON(e));
+    }
+    if (message.keyCount !== 0) {
+      obj.keyCount = Math.round(message.keyCount);
+    }
+    if (message.layerCount !== 0) {
+      obj.layerCount = Math.round(message.layerCount);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetLayerLedColorsResponse>, I>>(base?: I): GetLayerLedColorsResponse {
+    return GetLayerLedColorsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetLayerLedColorsResponse>, I>>(object: I): GetLayerLedColorsResponse {
+    const message = createBaseGetLayerLedColorsResponse();
+    message.layers = object.layers?.map((e) => LayerLedConfig.fromPartial(e)) || [];
+    message.keyCount = object.keyCount ?? 0;
+    message.layerCount = object.layerCount ?? 0;
+    return message;
+  },
+};
+
+function createBaseSetLayerLedBindingRequest(): SetLayerLedBindingRequest {
+  return { layerId: 0, keyPosition: 0, color: 0 };
+}
+
+export const SetLayerLedBindingRequest = {
+  encode(message: SetLayerLedBindingRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.layerId !== 0) {
+      writer.uint32(8).uint32(message.layerId);
+    }
+    if (message.keyPosition !== 0) {
+      writer.uint32(16).uint32(message.keyPosition);
+    }
+    if (message.color !== 0) {
+      writer.uint32(24).uint32(message.color);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SetLayerLedBindingRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSetLayerLedBindingRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.color = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SetLayerLedBindingRequest {
+    return {
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : 0,
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : 0,
+      color: isSet(object.color) ? globalThis.Number(object.color) : 0,
+    };
+  },
+
+  toJSON(message: SetLayerLedBindingRequest): unknown {
+    const obj: any = {};
+    if (message.layerId !== 0) {
+      obj.layerId = Math.round(message.layerId);
+    }
+    if (message.keyPosition !== 0) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    if (message.color !== 0) {
+      obj.color = Math.round(message.color);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetLayerLedBindingRequest>, I>>(base?: I): SetLayerLedBindingRequest {
+    return SetLayerLedBindingRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetLayerLedBindingRequest>, I>>(object: I): SetLayerLedBindingRequest {
+    const message = createBaseSetLayerLedBindingRequest();
+    message.layerId = object.layerId ?? 0;
+    message.keyPosition = object.keyPosition ?? 0;
+    message.color = object.color ?? 0;
+    return message;
+  },
+};
+
+function createBaseCapsLockIndicatorState(): CapsLockIndicatorState {
+  return { enabled: false, offColor: 0, onColor: 0, keyPosition: 0 };
+}
+
+export const CapsLockIndicatorState = {
+  encode(message: CapsLockIndicatorState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.offColor !== 0) {
+      writer.uint32(16).uint32(message.offColor);
+    }
+    if (message.onColor !== 0) {
+      writer.uint32(24).uint32(message.onColor);
+    }
+    if (message.keyPosition !== 0) {
+      writer.uint32(32).uint32(message.keyPosition);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CapsLockIndicatorState {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCapsLockIndicatorState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.offColor = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.onColor = reader.uint32();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CapsLockIndicatorState {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      offColor: isSet(object.offColor) ? globalThis.Number(object.offColor) : 0,
+      onColor: isSet(object.onColor) ? globalThis.Number(object.onColor) : 0,
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : 0,
+    };
+  },
+
+  toJSON(message: CapsLockIndicatorState): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.offColor !== 0) {
+      obj.offColor = Math.round(message.offColor);
+    }
+    if (message.onColor !== 0) {
+      obj.onColor = Math.round(message.onColor);
+    }
+    if (message.keyPosition !== 0) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CapsLockIndicatorState>, I>>(base?: I): CapsLockIndicatorState {
+    return CapsLockIndicatorState.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CapsLockIndicatorState>, I>>(object: I): CapsLockIndicatorState {
+    const message = createBaseCapsLockIndicatorState();
+    message.enabled = object.enabled ?? false;
+    message.offColor = object.offColor ?? 0;
+    message.onColor = object.onColor ?? 0;
+    message.keyPosition = object.keyPosition ?? 0;
+    return message;
+  },
+};
+
+function createBaseSetCapsLockIndicatorRequest(): SetCapsLockIndicatorRequest {
+  return { enabled: undefined, offColor: undefined, onColor: undefined };
+}
+
+export const SetCapsLockIndicatorRequest = {
+  encode(message: SetCapsLockIndicatorRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.enabled !== undefined) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.offColor !== undefined) {
+      writer.uint32(16).uint32(message.offColor);
+    }
+    if (message.onColor !== undefined) {
+      writer.uint32(24).uint32(message.onColor);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SetCapsLockIndicatorRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSetCapsLockIndicatorRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.offColor = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.onColor = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SetCapsLockIndicatorRequest {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : undefined,
+      offColor: isSet(object.offColor) ? globalThis.Number(object.offColor) : undefined,
+      onColor: isSet(object.onColor) ? globalThis.Number(object.onColor) : undefined,
+    };
+  },
+
+  toJSON(message: SetCapsLockIndicatorRequest): unknown {
+    const obj: any = {};
+    if (message.enabled !== undefined) {
+      obj.enabled = message.enabled;
+    }
+    if (message.offColor !== undefined) {
+      obj.offColor = Math.round(message.offColor);
+    }
+    if (message.onColor !== undefined) {
+      obj.onColor = Math.round(message.onColor);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetCapsLockIndicatorRequest>, I>>(base?: I): SetCapsLockIndicatorRequest {
+    return SetCapsLockIndicatorRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetCapsLockIndicatorRequest>, I>>(object: I): SetCapsLockIndicatorRequest {
+    const message = createBaseSetCapsLockIndicatorRequest();
+    message.enabled = object.enabled ?? undefined;
+    message.offColor = object.offColor ?? undefined;
+    message.onColor = object.onColor ?? undefined;
+    return message;
+  },
+};
+
 function createBaseRequest(): Request {
   return {
     getRgbUnderglowState: undefined,
@@ -553,6 +1123,11 @@ function createBaseRequest(): Request {
     getBacklightState: undefined,
     setBacklightState: undefined,
     saveState: undefined,
+    getLayerLedColors: undefined,
+    setLayerLedBinding: undefined,
+    getCapsLockIndicator: undefined,
+    setCapsLockIndicator: undefined,
+    saveLayerLedState: undefined,
   };
 }
 
@@ -572,6 +1147,21 @@ export const Request = {
     }
     if (message.saveState !== undefined) {
       writer.uint32(40).bool(message.saveState);
+    }
+    if (message.getLayerLedColors !== undefined) {
+      writer.uint32(48).bool(message.getLayerLedColors);
+    }
+    if (message.setLayerLedBinding !== undefined) {
+      SetLayerLedBindingRequest.encode(message.setLayerLedBinding, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.getCapsLockIndicator !== undefined) {
+      writer.uint32(64).bool(message.getCapsLockIndicator);
+    }
+    if (message.setCapsLockIndicator !== undefined) {
+      SetCapsLockIndicatorRequest.encode(message.setCapsLockIndicator, writer.uint32(74).fork()).ldelim();
+    }
+    if (message.saveLayerLedState !== undefined) {
+      writer.uint32(80).bool(message.saveLayerLedState);
     }
     return writer;
   },
@@ -618,6 +1208,41 @@ export const Request = {
 
           message.saveState = reader.bool();
           continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.getLayerLedColors = reader.bool();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.setLayerLedBinding = SetLayerLedBindingRequest.decode(reader, reader.uint32());
+          continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.getCapsLockIndicator = reader.bool();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.setCapsLockIndicator = SetCapsLockIndicatorRequest.decode(reader, reader.uint32());
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.saveLayerLedState = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -640,6 +1265,17 @@ export const Request = {
         ? SetBacklightStateRequest.fromJSON(object.setBacklightState)
         : undefined,
       saveState: isSet(object.saveState) ? globalThis.Boolean(object.saveState) : undefined,
+      getLayerLedColors: isSet(object.getLayerLedColors) ? globalThis.Boolean(object.getLayerLedColors) : undefined,
+      setLayerLedBinding: isSet(object.setLayerLedBinding)
+        ? SetLayerLedBindingRequest.fromJSON(object.setLayerLedBinding)
+        : undefined,
+      getCapsLockIndicator: isSet(object.getCapsLockIndicator)
+        ? globalThis.Boolean(object.getCapsLockIndicator)
+        : undefined,
+      setCapsLockIndicator: isSet(object.setCapsLockIndicator)
+        ? SetCapsLockIndicatorRequest.fromJSON(object.setCapsLockIndicator)
+        : undefined,
+      saveLayerLedState: isSet(object.saveLayerLedState) ? globalThis.Boolean(object.saveLayerLedState) : undefined,
     };
   },
 
@@ -660,6 +1296,21 @@ export const Request = {
     if (message.saveState !== undefined) {
       obj.saveState = message.saveState;
     }
+    if (message.getLayerLedColors !== undefined) {
+      obj.getLayerLedColors = message.getLayerLedColors;
+    }
+    if (message.setLayerLedBinding !== undefined) {
+      obj.setLayerLedBinding = SetLayerLedBindingRequest.toJSON(message.setLayerLedBinding);
+    }
+    if (message.getCapsLockIndicator !== undefined) {
+      obj.getCapsLockIndicator = message.getCapsLockIndicator;
+    }
+    if (message.setCapsLockIndicator !== undefined) {
+      obj.setCapsLockIndicator = SetCapsLockIndicatorRequest.toJSON(message.setCapsLockIndicator);
+    }
+    if (message.saveLayerLedState !== undefined) {
+      obj.saveLayerLedState = message.saveLayerLedState;
+    }
     return obj;
   },
 
@@ -677,6 +1328,15 @@ export const Request = {
       ? SetBacklightStateRequest.fromPartial(object.setBacklightState)
       : undefined;
     message.saveState = object.saveState ?? undefined;
+    message.getLayerLedColors = object.getLayerLedColors ?? undefined;
+    message.setLayerLedBinding = (object.setLayerLedBinding !== undefined && object.setLayerLedBinding !== null)
+      ? SetLayerLedBindingRequest.fromPartial(object.setLayerLedBinding)
+      : undefined;
+    message.getCapsLockIndicator = object.getCapsLockIndicator ?? undefined;
+    message.setCapsLockIndicator = (object.setCapsLockIndicator !== undefined && object.setCapsLockIndicator !== null)
+      ? SetCapsLockIndicatorRequest.fromPartial(object.setCapsLockIndicator)
+      : undefined;
+    message.saveLayerLedState = object.saveLayerLedState ?? undefined;
     return message;
   },
 };
@@ -688,6 +1348,11 @@ function createBaseResponse(): Response {
     getBacklightState: undefined,
     setBacklightState: undefined,
     saveState: undefined,
+    getLayerLedColors: undefined,
+    setLayerLedBinding: undefined,
+    getCapsLockIndicator: undefined,
+    setCapsLockIndicator: undefined,
+    saveLayerLedState: undefined,
   };
 }
 
@@ -707,6 +1372,21 @@ export const Response = {
     }
     if (message.saveState !== undefined) {
       writer.uint32(40).bool(message.saveState);
+    }
+    if (message.getLayerLedColors !== undefined) {
+      GetLayerLedColorsResponse.encode(message.getLayerLedColors, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.setLayerLedBinding !== undefined) {
+      writer.uint32(56).bool(message.setLayerLedBinding);
+    }
+    if (message.getCapsLockIndicator !== undefined) {
+      CapsLockIndicatorState.encode(message.getCapsLockIndicator, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.setCapsLockIndicator !== undefined) {
+      writer.uint32(72).bool(message.setCapsLockIndicator);
+    }
+    if (message.saveLayerLedState !== undefined) {
+      writer.uint32(80).bool(message.saveLayerLedState);
     }
     return writer;
   },
@@ -753,6 +1433,41 @@ export const Response = {
 
           message.saveState = reader.bool();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.getLayerLedColors = GetLayerLedColorsResponse.decode(reader, reader.uint32());
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.setLayerLedBinding = reader.bool();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.getCapsLockIndicator = CapsLockIndicatorState.decode(reader, reader.uint32());
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.setCapsLockIndicator = reader.bool();
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.saveLayerLedState = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -775,6 +1490,17 @@ export const Response = {
         : undefined,
       setBacklightState: isSet(object.setBacklightState) ? globalThis.Boolean(object.setBacklightState) : undefined,
       saveState: isSet(object.saveState) ? globalThis.Boolean(object.saveState) : undefined,
+      getLayerLedColors: isSet(object.getLayerLedColors)
+        ? GetLayerLedColorsResponse.fromJSON(object.getLayerLedColors)
+        : undefined,
+      setLayerLedBinding: isSet(object.setLayerLedBinding) ? globalThis.Boolean(object.setLayerLedBinding) : undefined,
+      getCapsLockIndicator: isSet(object.getCapsLockIndicator)
+        ? CapsLockIndicatorState.fromJSON(object.getCapsLockIndicator)
+        : undefined,
+      setCapsLockIndicator: isSet(object.setCapsLockIndicator)
+        ? globalThis.Boolean(object.setCapsLockIndicator)
+        : undefined,
+      saveLayerLedState: isSet(object.saveLayerLedState) ? globalThis.Boolean(object.saveLayerLedState) : undefined,
     };
   },
 
@@ -795,6 +1521,21 @@ export const Response = {
     if (message.saveState !== undefined) {
       obj.saveState = message.saveState;
     }
+    if (message.getLayerLedColors !== undefined) {
+      obj.getLayerLedColors = GetLayerLedColorsResponse.toJSON(message.getLayerLedColors);
+    }
+    if (message.setLayerLedBinding !== undefined) {
+      obj.setLayerLedBinding = message.setLayerLedBinding;
+    }
+    if (message.getCapsLockIndicator !== undefined) {
+      obj.getCapsLockIndicator = CapsLockIndicatorState.toJSON(message.getCapsLockIndicator);
+    }
+    if (message.setCapsLockIndicator !== undefined) {
+      obj.setCapsLockIndicator = message.setCapsLockIndicator;
+    }
+    if (message.saveLayerLedState !== undefined) {
+      obj.saveLayerLedState = message.saveLayerLedState;
+    }
     return obj;
   },
 
@@ -812,6 +1553,15 @@ export const Response = {
       : undefined;
     message.setBacklightState = object.setBacklightState ?? undefined;
     message.saveState = object.saveState ?? undefined;
+    message.getLayerLedColors = (object.getLayerLedColors !== undefined && object.getLayerLedColors !== null)
+      ? GetLayerLedColorsResponse.fromPartial(object.getLayerLedColors)
+      : undefined;
+    message.setLayerLedBinding = object.setLayerLedBinding ?? undefined;
+    message.getCapsLockIndicator = (object.getCapsLockIndicator !== undefined && object.getCapsLockIndicator !== null)
+      ? CapsLockIndicatorState.fromPartial(object.getCapsLockIndicator)
+      : undefined;
+    message.setCapsLockIndicator = object.setCapsLockIndicator ?? undefined;
+    message.saveLayerLedState = object.saveLayerLedState ?? undefined;
     return message;
   },
 };
