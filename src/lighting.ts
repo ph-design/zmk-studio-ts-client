@@ -76,12 +76,38 @@ export interface CapsLockIndicatorState {
   /** 0xRRGGBB */
   onColor: number;
   keyPosition: number;
+  /** 0xFF = any layer */
+  layerId: number;
 }
 
 export interface SetCapsLockIndicatorRequest {
   enabled?: boolean | undefined;
   offColor?: number | undefined;
   onColor?: number | undefined;
+  keyPosition?:
+    | number
+    | undefined;
+  /** 0xFF = any layer */
+  layerId?: number | undefined;
+}
+
+export interface ConnectionIndicatorState {
+  enabled: boolean;
+  /** 0xRRGGBB */
+  usbColor: number;
+  /** 0xRRGGBB */
+  btColor: number;
+  keyPosition: number;
+  /** 0xFF = any layer */
+  layerId: number;
+}
+
+export interface SetConnectionIndicatorRequest {
+  enabled?: boolean | undefined;
+  usbColor?: number | undefined;
+  btColor?: number | undefined;
+  keyPosition?: number | undefined;
+  layerId?: number | undefined;
 }
 
 export interface SetLayerLedEnabledRequest {
@@ -100,6 +126,8 @@ export interface Request {
   setCapsLockIndicator?: SetCapsLockIndicatorRequest | undefined;
   saveLayerLedState?: boolean | undefined;
   setLayerLedEnabled?: SetLayerLedEnabledRequest | undefined;
+  getConnectionIndicator?: boolean | undefined;
+  setConnectionIndicator?: SetConnectionIndicatorRequest | undefined;
 }
 
 export interface Response {
@@ -114,6 +142,8 @@ export interface Response {
   setCapsLockIndicator?: boolean | undefined;
   saveLayerLedState?: boolean | undefined;
   setLayerLedEnabled?: boolean | undefined;
+  getConnectionIndicator?: ConnectionIndicatorState | undefined;
+  setConnectionIndicator?: boolean | undefined;
 }
 
 export interface Notification {
@@ -946,7 +976,7 @@ export const SetLayerLedBindingRequest = {
 };
 
 function createBaseCapsLockIndicatorState(): CapsLockIndicatorState {
-  return { enabled: false, offColor: 0, onColor: 0, keyPosition: 0 };
+  return { enabled: false, offColor: 0, onColor: 0, keyPosition: 0, layerId: 0 };
 }
 
 export const CapsLockIndicatorState = {
@@ -962,6 +992,9 @@ export const CapsLockIndicatorState = {
     }
     if (message.keyPosition !== 0) {
       writer.uint32(32).uint32(message.keyPosition);
+    }
+    if (message.layerId !== 0) {
+      writer.uint32(40).uint32(message.layerId);
     }
     return writer;
   },
@@ -1001,6 +1034,13 @@ export const CapsLockIndicatorState = {
 
           message.keyPosition = reader.uint32();
           continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1016,6 +1056,7 @@ export const CapsLockIndicatorState = {
       offColor: isSet(object.offColor) ? globalThis.Number(object.offColor) : 0,
       onColor: isSet(object.onColor) ? globalThis.Number(object.onColor) : 0,
       keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : 0,
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : 0,
     };
   },
 
@@ -1033,6 +1074,9 @@ export const CapsLockIndicatorState = {
     if (message.keyPosition !== 0) {
       obj.keyPosition = Math.round(message.keyPosition);
     }
+    if (message.layerId !== 0) {
+      obj.layerId = Math.round(message.layerId);
+    }
     return obj;
   },
 
@@ -1045,12 +1089,13 @@ export const CapsLockIndicatorState = {
     message.offColor = object.offColor ?? 0;
     message.onColor = object.onColor ?? 0;
     message.keyPosition = object.keyPosition ?? 0;
+    message.layerId = object.layerId ?? 0;
     return message;
   },
 };
 
 function createBaseSetCapsLockIndicatorRequest(): SetCapsLockIndicatorRequest {
-  return { enabled: undefined, offColor: undefined, onColor: undefined };
+  return { enabled: undefined, offColor: undefined, onColor: undefined, keyPosition: undefined, layerId: undefined };
 }
 
 export const SetCapsLockIndicatorRequest = {
@@ -1063,6 +1108,12 @@ export const SetCapsLockIndicatorRequest = {
     }
     if (message.onColor !== undefined) {
       writer.uint32(24).uint32(message.onColor);
+    }
+    if (message.keyPosition !== undefined) {
+      writer.uint32(32).uint32(message.keyPosition);
+    }
+    if (message.layerId !== undefined) {
+      writer.uint32(40).uint32(message.layerId);
     }
     return writer;
   },
@@ -1095,6 +1146,20 @@ export const SetCapsLockIndicatorRequest = {
 
           message.onColor = reader.uint32();
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1109,6 +1174,8 @@ export const SetCapsLockIndicatorRequest = {
       enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : undefined,
       offColor: isSet(object.offColor) ? globalThis.Number(object.offColor) : undefined,
       onColor: isSet(object.onColor) ? globalThis.Number(object.onColor) : undefined,
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : undefined,
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : undefined,
     };
   },
 
@@ -1123,6 +1190,12 @@ export const SetCapsLockIndicatorRequest = {
     if (message.onColor !== undefined) {
       obj.onColor = Math.round(message.onColor);
     }
+    if (message.keyPosition !== undefined) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    if (message.layerId !== undefined) {
+      obj.layerId = Math.round(message.layerId);
+    }
     return obj;
   },
 
@@ -1134,6 +1207,248 @@ export const SetCapsLockIndicatorRequest = {
     message.enabled = object.enabled ?? undefined;
     message.offColor = object.offColor ?? undefined;
     message.onColor = object.onColor ?? undefined;
+    message.keyPosition = object.keyPosition ?? undefined;
+    message.layerId = object.layerId ?? undefined;
+    return message;
+  },
+};
+
+function createBaseConnectionIndicatorState(): ConnectionIndicatorState {
+  return { enabled: false, usbColor: 0, btColor: 0, keyPosition: 0, layerId: 0 };
+}
+
+export const ConnectionIndicatorState = {
+  encode(message: ConnectionIndicatorState, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.usbColor !== 0) {
+      writer.uint32(16).uint32(message.usbColor);
+    }
+    if (message.btColor !== 0) {
+      writer.uint32(24).uint32(message.btColor);
+    }
+    if (message.keyPosition !== 0) {
+      writer.uint32(32).uint32(message.keyPosition);
+    }
+    if (message.layerId !== 0) {
+      writer.uint32(40).uint32(message.layerId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ConnectionIndicatorState {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectionIndicatorState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.usbColor = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.btColor = reader.uint32();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConnectionIndicatorState {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      usbColor: isSet(object.usbColor) ? globalThis.Number(object.usbColor) : 0,
+      btColor: isSet(object.btColor) ? globalThis.Number(object.btColor) : 0,
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : 0,
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : 0,
+    };
+  },
+
+  toJSON(message: ConnectionIndicatorState): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.usbColor !== 0) {
+      obj.usbColor = Math.round(message.usbColor);
+    }
+    if (message.btColor !== 0) {
+      obj.btColor = Math.round(message.btColor);
+    }
+    if (message.keyPosition !== 0) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    if (message.layerId !== 0) {
+      obj.layerId = Math.round(message.layerId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ConnectionIndicatorState>, I>>(base?: I): ConnectionIndicatorState {
+    return ConnectionIndicatorState.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ConnectionIndicatorState>, I>>(object: I): ConnectionIndicatorState {
+    const message = createBaseConnectionIndicatorState();
+    message.enabled = object.enabled ?? false;
+    message.usbColor = object.usbColor ?? 0;
+    message.btColor = object.btColor ?? 0;
+    message.keyPosition = object.keyPosition ?? 0;
+    message.layerId = object.layerId ?? 0;
+    return message;
+  },
+};
+
+function createBaseSetConnectionIndicatorRequest(): SetConnectionIndicatorRequest {
+  return { enabled: undefined, usbColor: undefined, btColor: undefined, keyPosition: undefined, layerId: undefined };
+}
+
+export const SetConnectionIndicatorRequest = {
+  encode(message: SetConnectionIndicatorRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.enabled !== undefined) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.usbColor !== undefined) {
+      writer.uint32(16).uint32(message.usbColor);
+    }
+    if (message.btColor !== undefined) {
+      writer.uint32(24).uint32(message.btColor);
+    }
+    if (message.keyPosition !== undefined) {
+      writer.uint32(32).uint32(message.keyPosition);
+    }
+    if (message.layerId !== undefined) {
+      writer.uint32(40).uint32(message.layerId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): SetConnectionIndicatorRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSetConnectionIndicatorRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.usbColor = reader.uint32();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.btColor = reader.uint32();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.keyPosition = reader.uint32();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.layerId = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SetConnectionIndicatorRequest {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : undefined,
+      usbColor: isSet(object.usbColor) ? globalThis.Number(object.usbColor) : undefined,
+      btColor: isSet(object.btColor) ? globalThis.Number(object.btColor) : undefined,
+      keyPosition: isSet(object.keyPosition) ? globalThis.Number(object.keyPosition) : undefined,
+      layerId: isSet(object.layerId) ? globalThis.Number(object.layerId) : undefined,
+    };
+  },
+
+  toJSON(message: SetConnectionIndicatorRequest): unknown {
+    const obj: any = {};
+    if (message.enabled !== undefined) {
+      obj.enabled = message.enabled;
+    }
+    if (message.usbColor !== undefined) {
+      obj.usbColor = Math.round(message.usbColor);
+    }
+    if (message.btColor !== undefined) {
+      obj.btColor = Math.round(message.btColor);
+    }
+    if (message.keyPosition !== undefined) {
+      obj.keyPosition = Math.round(message.keyPosition);
+    }
+    if (message.layerId !== undefined) {
+      obj.layerId = Math.round(message.layerId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetConnectionIndicatorRequest>, I>>(base?: I): SetConnectionIndicatorRequest {
+    return SetConnectionIndicatorRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetConnectionIndicatorRequest>, I>>(
+    object: I,
+  ): SetConnectionIndicatorRequest {
+    const message = createBaseSetConnectionIndicatorRequest();
+    message.enabled = object.enabled ?? undefined;
+    message.usbColor = object.usbColor ?? undefined;
+    message.btColor = object.btColor ?? undefined;
+    message.keyPosition = object.keyPosition ?? undefined;
+    message.layerId = object.layerId ?? undefined;
     return message;
   },
 };
@@ -1208,6 +1523,8 @@ function createBaseRequest(): Request {
     setCapsLockIndicator: undefined,
     saveLayerLedState: undefined,
     setLayerLedEnabled: undefined,
+    getConnectionIndicator: undefined,
+    setConnectionIndicator: undefined,
   };
 }
 
@@ -1245,6 +1562,12 @@ export const Request = {
     }
     if (message.setLayerLedEnabled !== undefined) {
       SetLayerLedEnabledRequest.encode(message.setLayerLedEnabled, writer.uint32(90).fork()).ldelim();
+    }
+    if (message.getConnectionIndicator !== undefined) {
+      writer.uint32(96).bool(message.getConnectionIndicator);
+    }
+    if (message.setConnectionIndicator !== undefined) {
+      SetConnectionIndicatorRequest.encode(message.setConnectionIndicator, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -1333,6 +1656,20 @@ export const Request = {
 
           message.setLayerLedEnabled = SetLayerLedEnabledRequest.decode(reader, reader.uint32());
           continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.getConnectionIndicator = reader.bool();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.setConnectionIndicator = SetConnectionIndicatorRequest.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1368,6 +1705,12 @@ export const Request = {
       saveLayerLedState: isSet(object.saveLayerLedState) ? globalThis.Boolean(object.saveLayerLedState) : undefined,
       setLayerLedEnabled: isSet(object.setLayerLedEnabled)
         ? SetLayerLedEnabledRequest.fromJSON(object.setLayerLedEnabled)
+        : undefined,
+      getConnectionIndicator: isSet(object.getConnectionIndicator)
+        ? globalThis.Boolean(object.getConnectionIndicator)
+        : undefined,
+      setConnectionIndicator: isSet(object.setConnectionIndicator)
+        ? SetConnectionIndicatorRequest.fromJSON(object.setConnectionIndicator)
         : undefined,
     };
   },
@@ -1407,6 +1750,12 @@ export const Request = {
     if (message.setLayerLedEnabled !== undefined) {
       obj.setLayerLedEnabled = SetLayerLedEnabledRequest.toJSON(message.setLayerLedEnabled);
     }
+    if (message.getConnectionIndicator !== undefined) {
+      obj.getConnectionIndicator = message.getConnectionIndicator;
+    }
+    if (message.setConnectionIndicator !== undefined) {
+      obj.setConnectionIndicator = SetConnectionIndicatorRequest.toJSON(message.setConnectionIndicator);
+    }
     return obj;
   },
 
@@ -1436,6 +1785,11 @@ export const Request = {
     message.setLayerLedEnabled = (object.setLayerLedEnabled !== undefined && object.setLayerLedEnabled !== null)
       ? SetLayerLedEnabledRequest.fromPartial(object.setLayerLedEnabled)
       : undefined;
+    message.getConnectionIndicator = object.getConnectionIndicator ?? undefined;
+    message.setConnectionIndicator =
+      (object.setConnectionIndicator !== undefined && object.setConnectionIndicator !== null)
+        ? SetConnectionIndicatorRequest.fromPartial(object.setConnectionIndicator)
+        : undefined;
     return message;
   },
 };
@@ -1453,6 +1807,8 @@ function createBaseResponse(): Response {
     setCapsLockIndicator: undefined,
     saveLayerLedState: undefined,
     setLayerLedEnabled: undefined,
+    getConnectionIndicator: undefined,
+    setConnectionIndicator: undefined,
   };
 }
 
@@ -1490,6 +1846,12 @@ export const Response = {
     }
     if (message.setLayerLedEnabled !== undefined) {
       writer.uint32(88).bool(message.setLayerLedEnabled);
+    }
+    if (message.getConnectionIndicator !== undefined) {
+      ConnectionIndicatorState.encode(message.getConnectionIndicator, writer.uint32(98).fork()).ldelim();
+    }
+    if (message.setConnectionIndicator !== undefined) {
+      writer.uint32(104).bool(message.setConnectionIndicator);
     }
     return writer;
   },
@@ -1578,6 +1940,20 @@ export const Response = {
 
           message.setLayerLedEnabled = reader.bool();
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.getConnectionIndicator = ConnectionIndicatorState.decode(reader, reader.uint32());
+          continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.setConnectionIndicator = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1612,6 +1988,12 @@ export const Response = {
         : undefined,
       saveLayerLedState: isSet(object.saveLayerLedState) ? globalThis.Boolean(object.saveLayerLedState) : undefined,
       setLayerLedEnabled: isSet(object.setLayerLedEnabled) ? globalThis.Boolean(object.setLayerLedEnabled) : undefined,
+      getConnectionIndicator: isSet(object.getConnectionIndicator)
+        ? ConnectionIndicatorState.fromJSON(object.getConnectionIndicator)
+        : undefined,
+      setConnectionIndicator: isSet(object.setConnectionIndicator)
+        ? globalThis.Boolean(object.setConnectionIndicator)
+        : undefined,
     };
   },
 
@@ -1650,6 +2032,12 @@ export const Response = {
     if (message.setLayerLedEnabled !== undefined) {
       obj.setLayerLedEnabled = message.setLayerLedEnabled;
     }
+    if (message.getConnectionIndicator !== undefined) {
+      obj.getConnectionIndicator = ConnectionIndicatorState.toJSON(message.getConnectionIndicator);
+    }
+    if (message.setConnectionIndicator !== undefined) {
+      obj.setConnectionIndicator = message.setConnectionIndicator;
+    }
     return obj;
   },
 
@@ -1677,6 +2065,11 @@ export const Response = {
     message.setCapsLockIndicator = object.setCapsLockIndicator ?? undefined;
     message.saveLayerLedState = object.saveLayerLedState ?? undefined;
     message.setLayerLedEnabled = object.setLayerLedEnabled ?? undefined;
+    message.getConnectionIndicator =
+      (object.getConnectionIndicator !== undefined && object.getConnectionIndicator !== null)
+        ? ConnectionIndicatorState.fromPartial(object.getConnectionIndicator)
+        : undefined;
+    message.setConnectionIndicator = object.setConnectionIndicator ?? undefined;
     return message;
   },
 };
