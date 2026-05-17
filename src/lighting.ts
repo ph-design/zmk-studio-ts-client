@@ -76,7 +76,6 @@ export interface CapsLockIndicatorState {
   /** 0xRRGGBB */
   onColor: number;
   keyPosition: number;
-  /** 0xFF = any layer */
   layerId: number;
 }
 
@@ -84,10 +83,7 @@ export interface SetCapsLockIndicatorRequest {
   enabled?: boolean | undefined;
   offColor?: number | undefined;
   onColor?: number | undefined;
-  keyPosition?:
-    | number
-    | undefined;
-  /** 0xFF = any layer */
+  keyPosition?: number | undefined;
   layerId?: number | undefined;
 }
 
@@ -98,7 +94,6 @@ export interface ConnectionIndicatorState {
   /** 0xRRGGBB */
   btColor: number;
   keyPosition: number;
-  /** 0xFF = any layer */
   layerId: number;
 }
 
