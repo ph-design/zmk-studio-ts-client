@@ -63,6 +63,8 @@ export interface Request {
   setCarryConfig?: CarryConfig | undefined;
   saveState?: boolean | undefined;
   setLiveStream?: boolean | undefined;
+  getStillWakeConfig?: boolean | undefined;
+  setStillWakeConfig?: StillWakeConfig | undefined;
 }
 
 export interface Response {
@@ -73,6 +75,8 @@ export interface Response {
   setCarryConfig?: boolean | undefined;
   saveState?: boolean | undefined;
   setLiveStream?: boolean | undefined;
+  stillWakeConfig?: StillWakeConfig | undefined;
+  setStillWakeConfig?: boolean | undefined;
 }
 
 export interface Capabilities {
@@ -82,6 +86,7 @@ export interface Capabilities {
   supportsDoubleTap: boolean;
   supportsCarry: boolean;
   thresholdMax: number;
+  supportsStillWake: boolean;
 }
 
 /**
@@ -116,6 +121,17 @@ export interface CarryConfig {
   motionDurationMs: number;
 }
 
+/**
+ * Keeps the keyboard awake once it has been set down: after a motion wake-up,
+ * the sensor must stay still for this long or the keyboard goes straight back
+ * to sleep. Settling is judged by the same any-motion streak falling silent.
+ */
+export interface StillWakeConfig {
+  enabled: boolean;
+  /** stillness required to stay awake */
+  settleDurationMs: number;
+}
+
 export interface LiveState {
   /**
    * Peak acceleration within the push period, in the same raw counts the
@@ -143,6 +159,8 @@ function createBaseRequest(): Request {
     setCarryConfig: undefined,
     saveState: undefined,
     setLiveStream: undefined,
+    getStillWakeConfig: undefined,
+    setStillWakeConfig: undefined,
   };
 }
 
@@ -168,6 +186,12 @@ export const Request = {
     }
     if (message.setLiveStream !== undefined) {
       writer.uint32(56).bool(message.setLiveStream);
+    }
+    if (message.getStillWakeConfig !== undefined) {
+      writer.uint32(64).bool(message.getStillWakeConfig);
+    }
+    if (message.setStillWakeConfig !== undefined) {
+      StillWakeConfig.encode(message.setStillWakeConfig, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -228,6 +252,20 @@ export const Request = {
 
           message.setLiveStream = reader.bool();
           continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.getStillWakeConfig = reader.bool();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.setStillWakeConfig = StillWakeConfig.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -246,6 +284,10 @@ export const Request = {
       setCarryConfig: isSet(object.setCarryConfig) ? CarryConfig.fromJSON(object.setCarryConfig) : undefined,
       saveState: isSet(object.saveState) ? globalThis.Boolean(object.saveState) : undefined,
       setLiveStream: isSet(object.setLiveStream) ? globalThis.Boolean(object.setLiveStream) : undefined,
+      getStillWakeConfig: isSet(object.getStillWakeConfig) ? globalThis.Boolean(object.getStillWakeConfig) : undefined,
+      setStillWakeConfig: isSet(object.setStillWakeConfig)
+        ? StillWakeConfig.fromJSON(object.setStillWakeConfig)
+        : undefined,
     };
   },
 
@@ -272,6 +314,12 @@ export const Request = {
     if (message.setLiveStream !== undefined) {
       obj.setLiveStream = message.setLiveStream;
     }
+    if (message.getStillWakeConfig !== undefined) {
+      obj.getStillWakeConfig = message.getStillWakeConfig;
+    }
+    if (message.setStillWakeConfig !== undefined) {
+      obj.setStillWakeConfig = StillWakeConfig.toJSON(message.setStillWakeConfig);
+    }
     return obj;
   },
 
@@ -291,6 +339,10 @@ export const Request = {
       : undefined;
     message.saveState = object.saveState ?? undefined;
     message.setLiveStream = object.setLiveStream ?? undefined;
+    message.getStillWakeConfig = object.getStillWakeConfig ?? undefined;
+    message.setStillWakeConfig = (object.setStillWakeConfig !== undefined && object.setStillWakeConfig !== null)
+      ? StillWakeConfig.fromPartial(object.setStillWakeConfig)
+      : undefined;
     return message;
   },
 };
@@ -304,6 +356,8 @@ function createBaseResponse(): Response {
     setCarryConfig: undefined,
     saveState: undefined,
     setLiveStream: undefined,
+    stillWakeConfig: undefined,
+    setStillWakeConfig: undefined,
   };
 }
 
@@ -329,6 +383,12 @@ export const Response = {
     }
     if (message.setLiveStream !== undefined) {
       writer.uint32(56).bool(message.setLiveStream);
+    }
+    if (message.stillWakeConfig !== undefined) {
+      StillWakeConfig.encode(message.stillWakeConfig, writer.uint32(66).fork()).ldelim();
+    }
+    if (message.setStillWakeConfig !== undefined) {
+      writer.uint32(72).bool(message.setStillWakeConfig);
     }
     return writer;
   },
@@ -389,6 +449,20 @@ export const Response = {
 
           message.setLiveStream = reader.bool();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.stillWakeConfig = StillWakeConfig.decode(reader, reader.uint32());
+          continue;
+        case 9:
+          if (tag !== 72) {
+            break;
+          }
+
+          message.setStillWakeConfig = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -407,6 +481,8 @@ export const Response = {
       setCarryConfig: isSet(object.setCarryConfig) ? globalThis.Boolean(object.setCarryConfig) : undefined,
       saveState: isSet(object.saveState) ? globalThis.Boolean(object.saveState) : undefined,
       setLiveStream: isSet(object.setLiveStream) ? globalThis.Boolean(object.setLiveStream) : undefined,
+      stillWakeConfig: isSet(object.stillWakeConfig) ? StillWakeConfig.fromJSON(object.stillWakeConfig) : undefined,
+      setStillWakeConfig: isSet(object.setStillWakeConfig) ? globalThis.Boolean(object.setStillWakeConfig) : undefined,
     };
   },
 
@@ -433,6 +509,12 @@ export const Response = {
     if (message.setLiveStream !== undefined) {
       obj.setLiveStream = message.setLiveStream;
     }
+    if (message.stillWakeConfig !== undefined) {
+      obj.stillWakeConfig = StillWakeConfig.toJSON(message.stillWakeConfig);
+    }
+    if (message.setStillWakeConfig !== undefined) {
+      obj.setStillWakeConfig = message.setStillWakeConfig;
+    }
     return obj;
   },
 
@@ -454,12 +536,23 @@ export const Response = {
     message.setCarryConfig = object.setCarryConfig ?? undefined;
     message.saveState = object.saveState ?? undefined;
     message.setLiveStream = object.setLiveStream ?? undefined;
+    message.stillWakeConfig = (object.stillWakeConfig !== undefined && object.stillWakeConfig !== null)
+      ? StillWakeConfig.fromPartial(object.stillWakeConfig)
+      : undefined;
+    message.setStillWakeConfig = object.setStillWakeConfig ?? undefined;
     return message;
   },
 };
 
 function createBaseCapabilities(): Capabilities {
-  return { sensor: "", supportsTap: false, supportsDoubleTap: false, supportsCarry: false, thresholdMax: 0 };
+  return {
+    sensor: "",
+    supportsTap: false,
+    supportsDoubleTap: false,
+    supportsCarry: false,
+    thresholdMax: 0,
+    supportsStillWake: false,
+  };
 }
 
 export const Capabilities = {
@@ -478,6 +571,9 @@ export const Capabilities = {
     }
     if (message.thresholdMax !== 0) {
       writer.uint32(40).uint32(message.thresholdMax);
+    }
+    if (message.supportsStillWake !== false) {
+      writer.uint32(48).bool(message.supportsStillWake);
     }
     return writer;
   },
@@ -524,6 +620,13 @@ export const Capabilities = {
 
           message.thresholdMax = reader.uint32();
           continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.supportsStillWake = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -540,6 +643,7 @@ export const Capabilities = {
       supportsDoubleTap: isSet(object.supportsDoubleTap) ? globalThis.Boolean(object.supportsDoubleTap) : false,
       supportsCarry: isSet(object.supportsCarry) ? globalThis.Boolean(object.supportsCarry) : false,
       thresholdMax: isSet(object.thresholdMax) ? globalThis.Number(object.thresholdMax) : 0,
+      supportsStillWake: isSet(object.supportsStillWake) ? globalThis.Boolean(object.supportsStillWake) : false,
     };
   },
 
@@ -560,6 +664,9 @@ export const Capabilities = {
     if (message.thresholdMax !== 0) {
       obj.thresholdMax = Math.round(message.thresholdMax);
     }
+    if (message.supportsStillWake !== false) {
+      obj.supportsStillWake = message.supportsStillWake;
+    }
     return obj;
   },
 
@@ -573,6 +680,7 @@ export const Capabilities = {
     message.supportsDoubleTap = object.supportsDoubleTap ?? false;
     message.supportsCarry = object.supportsCarry ?? false;
     message.thresholdMax = object.thresholdMax ?? 0;
+    message.supportsStillWake = object.supportsStillWake ?? false;
     return message;
   },
 };
@@ -883,6 +991,80 @@ export const CarryConfig = {
     message.enabled = object.enabled ?? false;
     message.motionThreshold = object.motionThreshold ?? 0;
     message.motionDurationMs = object.motionDurationMs ?? 0;
+    return message;
+  },
+};
+
+function createBaseStillWakeConfig(): StillWakeConfig {
+  return { enabled: false, settleDurationMs: 0 };
+}
+
+export const StillWakeConfig = {
+  encode(message: StillWakeConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.settleDurationMs !== 0) {
+      writer.uint32(16).uint32(message.settleDurationMs);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): StillWakeConfig {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStillWakeConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.settleDurationMs = reader.uint32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StillWakeConfig {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      settleDurationMs: isSet(object.settleDurationMs) ? globalThis.Number(object.settleDurationMs) : 0,
+    };
+  },
+
+  toJSON(message: StillWakeConfig): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.settleDurationMs !== 0) {
+      obj.settleDurationMs = Math.round(message.settleDurationMs);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StillWakeConfig>, I>>(base?: I): StillWakeConfig {
+    return StillWakeConfig.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StillWakeConfig>, I>>(object: I): StillWakeConfig {
+    const message = createBaseStillWakeConfig();
+    message.enabled = object.enabled ?? false;
+    message.settleDurationMs = object.settleDurationMs ?? 0;
     return message;
   },
 };
