@@ -46,7 +46,6 @@ export interface SetBacklightStateRequest {
 
 export interface LayerLedBinding {
   keyPosition: number;
-  /** 0xRRGGBB, 0 = transparent */
   color: number;
 }
 
@@ -65,15 +64,12 @@ export interface GetLayerLedColorsResponse {
 export interface SetLayerLedBindingRequest {
   layerId: number;
   keyPosition: number;
-  /** 0xRRGGBB, 0 = transparent */
   color: number;
 }
 
 export interface CapsLockIndicatorState {
   enabled: boolean;
-  /** 0xRRGGBB */
   offColor: number;
-  /** 0xRRGGBB */
   onColor: number;
   keyPosition: number;
   layerId: number;
@@ -89,9 +85,7 @@ export interface SetCapsLockIndicatorRequest {
 
 export interface ConnectionIndicatorState {
   enabled: boolean;
-  /** 0xRRGGBB */
   usbColor: number;
-  /** 0xRRGGBB */
   btColor: number;
   keyPosition: number;
   layerId: number;
