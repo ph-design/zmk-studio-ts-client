@@ -1,5 +1,11 @@
 behaviors.ts
+combos.ts
+connection.ts
 core.ts
 keymap.ts
+lighting.ts
 meta.ts
+motion.ts
+pairing.ts
 studio.ts
+sysinfo.ts
