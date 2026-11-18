@@ -61,7 +61,7 @@ export async function connect(): Promise<RpcTransport> {
 
   let writable = new WritableStream({
     write(chunk) {
-      return char.writeValueWithoutResponse(chunk);
+      return char.writeValueWithResponse(chunk);
     },
   });
 
