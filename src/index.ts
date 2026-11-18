@@ -94,6 +94,15 @@ export function create_rpc_connection(transport: RpcTransport, opts?: CreateRpcC
 
 const rpcMutex = new Mutex();
 
+async function writeRequest(conn: RpcConnection, request: Request): Promise<void> {
+  const writer = conn.request_writable.getWriter();
+  try {
+    await writer.write(request);
+  } finally {
+    writer.releaseLock();
+  }
+}
+
 export class NoResponseError extends Error {
   constructor() {
     super("No RPC response received");
@@ -111,21 +120,22 @@ export class MetaError extends Error {
   }
 }
 
+export type RpcRequest = Omit<Request, "requestId" | "supportsActionConfirmation" | "confirmAction">;
+
 export async function call_rpc(
   conn: RpcConnection,
-  req: Omit<Request, 'requestId'>
+  req: RpcRequest
 ): Promise<RequestResponse> {
   return await rpcMutex.runExclusive(async () => {
-    let request: Request = { ...req, requestId: conn.current_request++ };
+    const request: Request = {
+      ...req,
+      requestId: conn.current_request++,
+      supportsActionConfirmation: true,
+    };
+    await writeRequest(conn, request);
 
-    let writer = conn.request_writable.getWriter();
-    await writer.write(request);
-    writer.releaseLock();
-
-    let reader = conn.request_response_readable.getReader();
-
-    let { done, value } = await reader.read();
-    reader.releaseLock();
+    const reader = conn.request_response_readable.getReader();
+    const { done, value } = await reader.read().finally(() => reader.releaseLock());
 
     if (done || !value) {
       throw 'No response';
@@ -141,6 +151,13 @@ export async function call_rpc(
       throw new MetaError(value.meta.simpleError);
     }
 
+    if (value.actionToken) {
+      await writeRequest(conn, {
+        requestId: conn.current_request++,
+        supportsActionConfirmation: true,
+        confirmAction: value.actionToken,
+      });
+    }
     return value;
   });
 }
